@@ -3,7 +3,7 @@
 The simple Anthropic agent that makes suggestions on how to improve your resume. 
 
 ## Current Scope
-- Accepts a path to a resume (Currently this only accepts `.txt` or `.md` files) and responds with suggested edits following resume best practices.
+- Asks for a path to a resume (Currently this only accepts `.txt` or `.md` files, and I'd suggest absolute filepath), and responds with suggested edits following resume best practices.
 
 ## Future Scope
 - Accepts a path to a resume and a job description and streams back suggested edits.
