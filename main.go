@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,10 +11,12 @@ import (
 	"syscall"
 	"time"
 
+	"resume_fixer/agent"
+	"resume_fixer/utils"
+
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/joho/godotenv"
-	"resume_fixer/agent"
 )
 
 func main() {
@@ -70,21 +71,9 @@ func main() {
 
 	// Create a ReadFileInput struct for the system prompt file
 	promptFilePath := "./agent_config/system_prompts/candidate_discovery.md"
-	readFileInput := agent.ReadFileInput{
-		Path: promptFilePath,
-	}
-	
-	// Marshal the input to JSON
-	inputJSON, err := json.Marshal(readFileInput)
+	systemPrompt, err := utils.ReadFileUtil(promptFilePath)
 	if err != nil {
-		fmt.Printf("Error marshaling input: %s\n", err)
-		os.Exit(1)
-	}
-	
-	// Call ReadFile with the properly formatted input
-	systemPrompt, err := agent.ReadFile(inputJSON)
-	if err != nil {
-		fmt.Printf("No system prompt for the agent found: %s\n", err)
+		fmt.Printf("Error finding the promptFilePath: %s", promptFilePath)
 		os.Exit(1)
 	}
 
@@ -97,7 +86,9 @@ func main() {
 	signal.Notify(signalCh, os.Interrupt, syscall.SIGTERM)
 
 	// Create the agent instance
-	agentInstance := agent.NewAgent(client, getUserMessage, systemPrompt)
+	// Define available tools
+	tools := []agent.ToolDefinition{agent.ReadFileDefinition, agent.ListFilesDefinition, agent.EditFileDefinition}
+	agentInstance := agent.NewAgent(client, getUserMessage, systemPrompt, tools)
 
 	// Create and start the console client
 	console := agent.NewConsoleClient(os.Stdout)

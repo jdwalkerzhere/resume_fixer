@@ -4,7 +4,7 @@ import (
 	"os"
 )
 
-func ReadFile(path string) (string, error) {
+func ReadFileUtil(path string) (string, error) {
 	content, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
