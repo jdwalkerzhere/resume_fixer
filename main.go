@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -67,8 +68,21 @@ func main() {
 		return scanner.Text(), true
 	}
 
-	interviewPrompt := "./agent_config/system_prompts/candidate_discovery.md"
-	systemPrompt, err := agent.ReadFile(interviewPrompt)
+	// Create a ReadFileInput struct for the system prompt file
+	promptFilePath := "./agent_config/system_prompts/candidate_discovery.md"
+	readFileInput := agent.ReadFileInput{
+		Path: promptFilePath,
+	}
+	
+	// Marshal the input to JSON
+	inputJSON, err := json.Marshal(readFileInput)
+	if err != nil {
+		fmt.Printf("Error marshaling input: %s\n", err)
+		os.Exit(1)
+	}
+	
+	// Call ReadFile with the properly formatted input
+	systemPrompt, err := agent.ReadFile(inputJSON)
 	if err != nil {
 		fmt.Printf("No system prompt for the agent found: %s\n", err)
 		os.Exit(1)
