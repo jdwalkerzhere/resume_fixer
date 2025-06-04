@@ -11,11 +11,11 @@ import (
 	"syscall"
 	"time"
 
-	"resume_fixer/agent"
 	"resume_fixer/utils"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
+	"github.com/jdwalkerzhere/agent"
 	"github.com/joho/godotenv"
 )
 
