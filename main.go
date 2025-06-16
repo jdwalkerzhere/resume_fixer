@@ -11,15 +11,46 @@ import (
 	"syscall"
 	"time"
 
+	"resume_fixer/prompts"
 	"resume_fixer/utils"
 
 	"github.com/anthropics/anthropic-sdk-go"
 	"github.com/anthropics/anthropic-sdk-go/option"
 	"github.com/jdwalkerzhere/agent"
+	"github.com/jdwalkerzhere/agent/clients"
 	"github.com/joho/godotenv"
 )
 
+func getInterviewPath() string {
+	fmt.Println("Please select the type of interview:")
+	i := 1
+	desiredPrompt := ""
+	for {
+		for name := range prompts.PromptRegistry {
+			fmt.Printf("\t-%d. %s\n", i, name)
+			i++
+		}
+		fmt.Print("Selection (Type Word, Not Number): ")
+		scanForInput := bufio.NewScanner(os.Stdin)
+		if scanForInput.Scan() {
+			selected := scanForInput.Text()
+			_, ok := prompts.PromptRegistry[selected]
+			if !ok {
+				fmt.Println("Please select a valid interview type.")
+				i = 1
+			} else {
+				desiredPrompt = selected
+				break
+			}
+		}
+	}
+
+	selectedPrompt := prompts.PromptRegistry[desiredPrompt].PathToPrompt
+	return fmt.Sprintf("./prompts/%s", selectedPrompt)
+}
+
 func main() {
+	pathToPrompt := getInterviewPath()
 	err := godotenv.Load()
 	if err != nil {
 		fmt.Printf("Warning: Error loading .env file: %s\n", err)
@@ -70,10 +101,9 @@ func main() {
 	}
 
 	// Create a ReadFileInput struct for the system prompt file
-	promptFilePath := "./agent_config/system_prompts/candidate_discovery.md"
-	systemPrompt, err := utils.ReadFileUtil(promptFilePath)
+	systemPrompt, err := utils.ReadFileUtil(pathToPrompt)
 	if err != nil {
-		fmt.Printf("Error finding the promptFilePath: %s", promptFilePath)
+		fmt.Printf("Error finding the promptFilePath: %s", pathToPrompt)
 		os.Exit(1)
 	}
 
@@ -91,7 +121,7 @@ func main() {
 	agentInstance := agent.NewAgent(client, getUserMessage, systemPrompt, tools)
 
 	// Create and start the console client
-	console := agent.NewConsoleClient(os.Stdout)
+	console := clients.NewConsoleClient(os.Stdout)
 	go console.Run(agentInstance)
 
 	// Handle shutdown signals
@@ -104,7 +134,7 @@ func main() {
 		// Start a cleanup goroutine that will force exit if graceful shutdown takes too long
 		go func() {
 			// Wait for a short timeout to allow for graceful shutdown
-			shutdownTimeout := 2 * time.Second
+			shutdownTimeout := 1 * time.Second
 			time.Sleep(shutdownTimeout)
 
 			// If we're still running after the timeout, force exit
