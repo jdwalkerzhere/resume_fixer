@@ -12,4 +12,7 @@ var PromptRegistry = map[string]Prompt{
 	"Technical": Prompt{
 		PathToPrompt: "technical_interview_prompt.md",
 	},
+	"Resume Guide": Prompt{
+		PathToPrompt: "resume_experience_prompt.md",
+	},
 }
